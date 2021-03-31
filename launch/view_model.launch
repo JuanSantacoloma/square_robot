@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Cargar el modelo del robot -->
+    <arg 
+        name="model" 
+        default="$(find square_robot)/urdf/square_robot.urdf"
+    />
+
+    <!-- Parse of Model -->
+    <param 
+        name="robot_description" 
+        command="$(find xacro)/xacro $(arg model)"
+    />
+
+    <!-- publicando states -->
+    <node 
+        pkg="robot_state_publisher" 
+        type="robot_state_publisher" 
+        name="rob_pub">
+    </node>
+
+    <node 
+        pkg="joint_state_publisher_gui" 
+        type="joint_state_publisher_gui" 
+        name="joint_state">
+    </node>
+
+    <!-- Cargar controladores -->
+
+    <rosparam 
+        file="$(find square_robot)/config/controller_square_def.yaml" 
+        command="load"  
+    />
+
+    <node 
+        name="spawner_ctrols"
+        pkg="controller_manager" 
+        type="spawner" 
+        respawn="false"
+        output="screen"
+        args="  jnt_st_controller_square
+                wheel_controller_1 wheel_controller_2" />
+
+    <!-- RViz-->
+    <node 
+        pkg="rviz" 
+        type="rviz" 
+        name="rviz"
+        args = "-d $(find square_robot)/rviz/square_config.rviz"
+    />
+
+    <!-- Gazebo -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+        <arg name="use_sim_time" default="true"/>
+    </include>
+
+    <!-- Spawn robot en gazebo -->
+
+    <node 
+        pkg="gazebo_ros" 
+        type="spawn_model" 
+        name="spawn_square" 
+        respawn="false"
+        args="  -param robot_description
+                -urdf
+                -model square_robot"
+    />
+    
+</launch>
